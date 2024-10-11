@@ -1,9 +1,12 @@
 package main
 
 import (
-	"demo_ecommerce/api"
+	api "demo_ecommerce/api"
+	apiv1 "demo_ecommerce/api/v1"
 	"demo_ecommerce/internal/sqlclient"
 	"demo_ecommerce/repository"
+	"demo_ecommerce/repository/database"
+	"demo_ecommerce/service"
 )
 
 func init() {
@@ -22,9 +25,11 @@ func init() {
 		MaxOpenConns: 10,
 	}
 	repository.SqlClient = sqlclient.NewSqlClient(sqlClientConfig)
+	repository.UserRepo = database.NewUser()
 }
 
 func main() {
 	server := api.NewServer()
+	apiv1.NewUser(server.Engine, service.NewUser())
 	server.Start("8080")
 }
