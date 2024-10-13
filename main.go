@@ -4,6 +4,7 @@ import (
 	api "demo_ecommerce/api"
 	apiv1 "demo_ecommerce/api/v1"
 	"demo_ecommerce/internal/sqlclient"
+	"demo_ecommerce/middleware/auth"
 	"demo_ecommerce/repository"
 	"demo_ecommerce/repository/database"
 	"demo_ecommerce/service"
@@ -26,10 +27,13 @@ func init() {
 	}
 	repository.SqlClient = sqlclient.NewSqlClient(sqlClientConfig)
 	repository.UserRepo = database.NewUser()
+
 }
 
 func main() {
+	jwtservice := service.NewJWTService()
 	server := api.NewServer()
-	apiv1.NewUser(server.Engine, service.NewUser())
+	auth.AuthMdw = auth.NewAuthMiddleware(*jwtservice)
+	apiv1.NewUser(server.Engine, service.NewUser(*jwtservice))
 	server.Start("8080")
 }

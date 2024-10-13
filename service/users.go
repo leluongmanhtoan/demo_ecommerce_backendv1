@@ -8,6 +8,7 @@ import (
 	"demo_ecommerce/repository"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,19 +18,25 @@ import (
 type (
 	IUser interface {
 		UserSignUp(ctx context.Context, userPost model.PostSignUp) (int, any)
-		UserSignIn(ctx context.Context, userPost model.PostSignIn)
+		UserSignIn(ctx context.Context, userPost model.PostSignIn) (int, any)
 	}
 
 	User struct {
-		jwtService jwtService
+		jwtService JwtService
 	}
 )
 
-func NewUser() IUser {
-	return &User{}
+func NewUser(jwtservice JwtService) IUser {
+	return &User{
+		jwtService: jwtservice,
+	}
 }
 
 func (s *User) UserSignUp(ctx context.Context, userPost model.PostSignUp) (int, any) {
+	userExisted, _ := repository.UserRepo.GetUserByUsername(ctx, userPost.Username)
+	if userExisted != nil {
+		return response.ServiceUnavailableMessage("username already exists")
+	}
 	salt, _ := generateSalt(16)
 	hashPassword, _ := hashPassword(userPost.Password, salt)
 	user := model.User{
@@ -53,23 +60,28 @@ func (s *User) UserSignUp(ctx context.Context, userPost model.PostSignUp) (int, 
 	})
 }
 
-func (s *User) UserSignIn(ctx context.Context, userPost model.PostSignIn) {
+func (s *User) UserSignIn(ctx context.Context, userPost model.PostSignIn) (int, any) {
 	userRes, err := repository.UserRepo.GetUserByUsername(ctx, userPost.Username)
 
 	if err != nil {
-		return
+		return response.ServiceUnavailableMessage("username is not available")
 	} else if userRes.Username == "" {
-		return
+		return response.ServiceUnavailableMessage("username is not available")
 	}
 	password := userPost.Password
 	hash := userRes.Hash
 	salt := userRes.Salt
 	err = compareHashandPassword(hash, password, salt)
 	if err != nil {
-		return
+		return response.ServiceUnavailableMessage("wrong password")
 	}
 	generatedToken := s.jwtService.GenerateToken(userRes.Username)
-	fmt.Println(generatedToken)
+	return http.StatusAccepted, map[string]any{
+		"status":  http.StatusText(http.StatusAccepted),
+		"code":    http.StatusAccepted,
+		"message": "login successful",
+		"token":   generatedToken,
+	}
 
 }
 

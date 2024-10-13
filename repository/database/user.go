@@ -35,7 +35,7 @@ func (r *User) GetUserByUsername(ctx context.Context, username string) (*model.U
 		Limit(1)
 	err := query.Scan(ctx)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return nil, err
 	} else if err != nil {
 		return nil, err
 	} else {

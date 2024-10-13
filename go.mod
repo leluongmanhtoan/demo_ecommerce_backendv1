@@ -27,6 +27,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.4.0 // indirect
+	github.com/shaj13/go-guardian/v2 v2.11.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
